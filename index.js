@@ -1,28 +1,27 @@
-// api/index.js
-export const config = { runtime: 'edge' };
+module.exports = async (req, res) => {
+  const target = req.query.url;
 
-export default async function handler(request) {
-  const { searchParams } = new URL(request.url);
-  const target = searchParams.get('url');
   if (!target) {
-    return new Response('Missing `url` parameter', { status: 400 });
+    res.status(400).send('Missing "url" parameter');
+    return;
   }
-  // Forward user-agent and referer
-  const headers = {
-    'User-Agent': request.headers.get('user-agent') || '',
-    'Referer':   request.headers.get('referer')   || ''
-  };
+
   try {
-    const res = await fetch(target, { headers });
-    const body = await res.text();
-    // Return fetched HTML with CORS header
-    return new Response(body, {
+    const response = await fetch(target, {
       headers: {
-        'content-type': 'text/html',
-        'Access-Control-Allow-Origin': '*'
+        'user-agent': req.headers['user-agent'] || '',
+        referer: 'https://www.faselhds.xyz/'
       }
     });
+
+    const contentType = response.headers.get('content-type') || 'text/html';
+    const body = await response.text();
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+    res.status(response.status).send(body);
   } catch (err) {
-    return new Response(`Error fetching target: ${err}`, { status: 500 });
+    res.status(500).send(`Error fetching: ${err.message}`);
   }
-}
+};
