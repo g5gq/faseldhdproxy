@@ -1,25 +1,31 @@
-const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
+export const config = {
+  runtime: 'edge'
+};
 
-const app = express();
-app.use(cors());
+export default async function handler(req) {
+  const { searchParams } = new URL(req.url);
+  const target = searchParams.get('url');
 
-app.get("/", async (req, res) => {
-    const targetUrl = req.query.url;
-    if (!targetUrl) return res.status(400).send("Missing ?url=");
-    try {
-        const response = await fetch(targetUrl, {
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                "Accept": "text/html",
-            }
-        });
-        const html = await response.text();
-        res.send(html);
-    } catch (err) {
-        res.status(500).send("Error fetching target URL: " + err.message);
-    }
-});
+  if (!target) {
+    return new Response('Missing URL param', { status: 400 });
+  }
 
-module.exports = app;
+  try {
+    const res = await fetch(target, {
+      headers: {
+        'user-agent': req.headers.get('user-agent') || '',
+        'referer': 'https://www.faselhds.xyz/'
+      }
+    });
+    const text = await res.text();
+
+    return new Response(text, {
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+        'access-control-allow-origin': '*'
+      }
+    });
+  } catch (e) {
+    return new Response('Proxy failed: ' + e.message, { status: 500 });
+  }
+}
