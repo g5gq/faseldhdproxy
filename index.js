@@ -14,7 +14,7 @@ export default async function handler(req) {
     const res = await fetch(target, {
       headers: {
         'user-agent': req.headers.get('user-agent') || '',
-        'referer': 'https://www.faselhds.xyz/'
+        'referer': 'https://www.faselhds.xyz/',
       }
     });
     const text = await res.text();
