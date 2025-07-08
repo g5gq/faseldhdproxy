@@ -7,7 +7,7 @@ export default async function handler(req) {
   const target = searchParams.get('url');
 
   if (!target) {
-    return new Response('Missing URL param', { status: 400 });
+    return new Response('Missing "url" parameter', { status: 400 });
   }
 
   try {
@@ -15,17 +15,21 @@ export default async function handler(req) {
       headers: {
         'user-agent': req.headers.get('user-agent') || '',
         'referer': 'https://www.faselhds.xyz/',
-      }
+      },
     });
-    const text = await res.text();
 
-    return new Response(text, {
+    const contentType = res.headers.get('content-type') || 'text/html';
+    const body = await res.text();
+
+    return new Response(body, {
+      status: res.status,
       headers: {
-        'content-type': 'text/html; charset=utf-8',
-        'access-control-allow-origin': '*'
-      }
+        'content-type': contentType,
+        'access-control-allow-origin': '*',
+        'access-control-allow-headers': '*',
+      },
     });
-  } catch (e) {
-    return new Response('Proxy failed: ' + e.message, { status: 500 });
+  } catch (err) {
+    return new Response(`Error fetching: ${err.message}`, { status: 500 });
   }
 }
