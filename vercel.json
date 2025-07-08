@@ -1,7 +1,8 @@
 {
-  "functions": {
-    "api/index.js": {
-      "runtime": "edge"
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.js"
     }
-  }
+  ]
 }
